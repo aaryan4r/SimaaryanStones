@@ -825,6 +825,24 @@
     }
     .add-slot-btn:hover { border-color:var(--rust); color:var(--rust); }
 
+
+    .gallery-lightbox {
+      position:fixed; inset:0; background:rgba(20,14,9,.9);
+      display:none; align-items:center; justify-content:center;
+      z-index:1200; padding:26px;
+    }
+    .gallery-lightbox.open { display:flex; }
+    .gallery-lightbox img {
+      max-width:min(1100px,92vw); max-height:90vh;
+      border-radius:8px; box-shadow:0 20px 60px rgba(0,0,0,.45);
+    }
+    .lightbox-close {
+      position:absolute; top:20px; right:24px;
+      background:transparent; border:1px solid rgba(249,243,235,.6);
+      color:rgba(249,243,235,.9); width:40px; height:40px;
+      border-radius:50%; font-size:1.2rem; cursor:pointer;
+    }
+
     /* ═════════ APPLICATIONS ═════════ */
     .applications {
       padding:110px 64px;
@@ -1321,20 +1339,8 @@
     </button>
   </div>
   <input type="file" id="galleryInput" accept="image/*" multiple/>
-  <div class="gallery-grid" id="galleryGrid">
-    <!-- 8 empty slots -->
-    <div class="gslot empty r" data-index="0"><div class="gslot-icon">🖼</div><div class="gslot-txt">Click to Upload</div></div>
-    <div class="gslot empty r d1" data-index="1"><div class="gslot-icon">🖼</div><div class="gslot-txt">Click to Upload</div></div>
-    <div class="gslot empty r d2" data-index="2"><div class="gslot-icon">🖼</div><div class="gslot-txt">Click to Upload</div></div>
-    <div class="gslot empty r d3" data-index="3"><div class="gslot-icon">🖼</div><div class="gslot-txt">Click to Upload</div></div>
-    <div class="gslot empty r" data-index="4"><div class="gslot-icon">🖼</div><div class="gslot-txt">Click to Upload</div></div>
-    <div class="gslot empty r d1" data-index="5"><div class="gslot-icon">🖼</div><div class="gslot-txt">Click to Upload</div></div>
-    <div class="gslot empty r d2" data-index="6"><div class="gslot-icon">🖼</div><div class="gslot-txt">Click to Upload</div></div>
-    <div class="gslot empty r d3" data-index="7"><div class="gslot-icon">🖼</div><div class="gslot-txt">Click to Upload</div></div>
-  </div>
-  <div class="add-slot-row">
-    <button class="add-slot-btn" id="addMoreSlots">+ Add More Slots</button>
-  </div>
+  <div class="gallery-grid" id="galleryGrid"></div>
+  <div class="gallery-info" id="galleryStatus" style="margin-top:12px"></div>
 </section>
 
 <!-- ═══════════════════ APPLICATIONS ═══════════════════ -->
@@ -1600,6 +1606,12 @@
 </footer>
 
 <!-- ═══════════════════ JAVASCRIPT ═══════════════════ -->
+
+<div class="gallery-lightbox" id="galleryLightbox" aria-hidden="true">
+  <button class="lightbox-close" id="lightboxClose" aria-label="Close photo viewer">✕</button>
+  <img id="lightboxImage" src="" alt="Uploaded granite project photo"/>
+</div>
+
 <script>
   /* ── Custom cursor ── */
   const cur = document.getElementById('cur');
@@ -1685,107 +1697,179 @@
   const galleryInput = document.getElementById('galleryInput');
   const uploadTrigger = document.getElementById('uploadTrigger');
   const galleryCount = document.getElementById('galleryCount');
-  const addMoreSlots = document.getElementById('addMoreSlots');
-  let uploadCount = 0;
-  let slotCount = 8;
-  let pendingSlotIndex = null;
+  const galleryStatus = document.getElementById('galleryStatus');
+  const galleryLightbox = document.getElementById('galleryLightbox');
+  const lightboxImage = document.getElementById('lightboxImage');
+  const lightboxClose = document.getElementById('lightboxClose');
+
+  const MIN_GALLERY_SLOTS = 8;
+  let galleryPhotos = [];
+  let replacingPhotoId = null;
 
   function updateCount(){
-    galleryCount.textContent = uploadCount + ' photo' + (uploadCount!==1?'s':'') + ' uploaded';
+    galleryCount.textContent = galleryPhotos.length + ' photo' + (galleryPhotos.length !== 1 ? 's' : '') + ' uploaded';
   }
 
-  function fillSlot(slot, file){
-    const reader = new FileReader();
-    reader.onload = e => {
-      slot.classList.remove('empty');
-      slot.classList.add('filled');
-      slot.innerHTML = `
-        <img src="${e.target.result}" alt="Granite project photo — SimAaryan Stones Ongole" loading="lazy"/>
-        <div class="gslot-caption">SimAaryan Stones — Granite Project</div>
-        <div class="gslot-overlay">
-          <button onclick="removePhoto(this.closest('.gslot'))">Remove Photo</button>
-          <button onclick="replacePhoto(this.closest('.gslot'))">Replace</button>
-        </div>`;
-      uploadCount++;
-      updateCount();
-    };
-    reader.readAsDataURL(file);
+  function setGalleryStatus(message, isError = false){
+    galleryStatus.textContent = message || '';
+    galleryStatus.style.color = isError ? '#b5451b' : 'var(--stone)';
   }
 
-  function getEmptySlot(){
-    return galleryGrid.querySelector('.gslot.empty');
+  function createEmptySlot(){
+    const slot = document.createElement('div');
+    slot.className = 'gslot empty';
+    slot.innerHTML = '<div class="gslot-icon">🖼</div><div class="gslot-txt">Click to Upload</div>';
+    return slot;
   }
+
+  function createFilledSlot(photo){
+    const slot = document.createElement('div');
+    slot.className = 'gslot filled';
+    slot.dataset.photoId = photo.id;
+    slot.innerHTML = `
+      <img src="${photo.url}" alt="Granite project photo — SimAaryan Stones Ongole" loading="lazy"/>
+      <div class="gslot-caption">SimAaryan Stones — Granite Project</div>
+      <div class="gslot-overlay">
+        <button type="button" onclick="viewPhoto('${photo.url}')">View Photo</button>
+        <button type="button" onclick="replacePhoto('${photo.id}')">Replace</button>
+        <button type="button" onclick="removePhoto('${photo.id}')">Remove Photo</button>
+      </div>`;
+    return slot;
+  }
+
+  function renderGallery(){
+    galleryGrid.innerHTML = '';
+    galleryPhotos.forEach(photo => galleryGrid.appendChild(createFilledSlot(photo)));
+    const emptySlots = Math.max(MIN_GALLERY_SLOTS - galleryPhotos.length, 0);
+    for(let i=0;i<emptySlots;i++) galleryGrid.appendChild(createEmptySlot());
+    updateCount();
+  }
+
+  async function readFilesAsDataUrls(files){
+    const tasks = files.map(file => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error('Unable to read selected image.'));
+      reader.readAsDataURL(file);
+    }));
+    return Promise.all(tasks);
+  }
+
+  async function uploadPhotos(files){
+    if(!files.length) return;
+    setGalleryStatus('Uploading photos...');
+    try {
+      const photos = await readFilesAsDataUrls(files);
+      const resp = await fetch('/api/gallery/photos', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ photos }),
+      });
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.message || 'Upload failed');
+      galleryPhotos = data.allPhotos || [];
+      renderGallery();
+      setGalleryStatus('Photos uploaded and saved successfully.');
+    } catch(err){
+      setGalleryStatus(err.message || 'Unable to upload photos.', true);
+    }
+  }
+
+  async function loadPersistedGallery(){
+    setGalleryStatus('Loading gallery...');
+    try {
+      const resp = await fetch('/api/gallery/photos');
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.message || 'Failed to load gallery');
+      galleryPhotos = Array.isArray(data.photos) ? data.photos : [];
+      renderGallery();
+      setGalleryStatus('Gallery is synced from server.');
+    } catch(err){
+      renderGallery();
+      setGalleryStatus('Gallery server unavailable. Uploaded photos cannot be shared right now.', true);
+    }
+  }
+
+  window.removePhoto = async function(photoId){
+    setGalleryStatus('Removing photo...');
+    try {
+      const resp = await fetch(`/api/gallery/photos/${photoId}`, { method:'DELETE' });
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.message || 'Unable to remove photo');
+      galleryPhotos = data.photos || [];
+      renderGallery();
+      setGalleryStatus('Photo removed.');
+    } catch(err){
+      setGalleryStatus(err.message || 'Unable to remove photo.', true);
+    }
+  };
+
+  window.replacePhoto = function(photoId){
+    replacingPhotoId = photoId;
+    galleryInput.multiple = false;
+    galleryInput.click();
+  };
+
+  window.viewPhoto = function(url){
+    lightboxImage.src = url;
+    galleryLightbox.classList.add('open');
+    galleryLightbox.setAttribute('aria-hidden', 'false');
+  };
+
+  lightboxClose.addEventListener('click', () => {
+    galleryLightbox.classList.remove('open');
+    galleryLightbox.setAttribute('aria-hidden', 'true');
+    lightboxImage.src = '';
+  });
+
+  galleryLightbox.addEventListener('click', e => {
+    if(e.target === galleryLightbox) lightboxClose.click();
+  });
 
   uploadTrigger.addEventListener('click', () => {
-    pendingSlotIndex = null;
+    replacingPhotoId = null;
     galleryInput.multiple = true;
     galleryInput.click();
   });
 
-  galleryInput.addEventListener('change', e => {
-    const files = Array.from(e.target.files);
-    files.forEach(file => {
-      const emptySlot = getEmptySlot();
-      if(emptySlot) {
-        fillSlot(emptySlot, file);
-      } else {
-        addSlot(file);
-      }
-    });
-    galleryInput.value = '';
-    pendingSlotIndex = null;
-  });
-
-  // Click empty slot to upload
   galleryGrid.addEventListener('click', e => {
-    const slot = e.target.closest('.gslot.empty');
-    if(slot){
-      pendingSlotIndex = slot.dataset.index;
-      galleryInput.multiple = false;
+    if(e.target.closest('.gslot.empty')) {
+      replacingPhotoId = null;
+      galleryInput.multiple = true;
       galleryInput.click();
     }
   });
 
-  window.removePhoto = function(slot){
-    uploadCount = Math.max(0, uploadCount-1);
-    slot.innerHTML = '<div class="gslot-icon">🖼</div><div class="gslot-txt">Click to Upload</div>';
-    slot.classList.remove('filled');
-    slot.classList.add('empty');
-    updateCount();
-  };
+  galleryInput.addEventListener('change', async e => {
+    const files = Array.from(e.target.files || []);
+    if(!files.length) return;
 
-  window.replacePhoto = function(slot){
-    pendingSlotIndex = slot.dataset.index;
-    galleryInput.multiple = false;
-    const oldOnChange = galleryInput.onchange;
-    galleryInput.onchange = null;
-    galleryInput.addEventListener('change', function handler(e){
-      const file = e.target.files[0];
-      if(file){
-        uploadCount = Math.max(0, uploadCount-1);
-        slot.classList.remove('filled');
-        slot.classList.add('empty');
-        slot.innerHTML = '<div class="gslot-icon">🖼</div><div class="gslot-txt">Click to Upload</div>';
-        fillSlot(slot, file);
+    if(replacingPhotoId){
+      setGalleryStatus('Replacing photo...');
+      try {
+        const [photo] = await readFilesAsDataUrls([files[0]]);
+        const resp = await fetch(`/api/gallery/photos/${replacingPhotoId}`, {
+          method:'PUT',
+          headers:{ 'Content-Type':'application/json' },
+          body: JSON.stringify({ photo }),
+        });
+        const data = await resp.json();
+        if(!resp.ok || !data.success) throw new Error(data.message || 'Unable to replace photo');
+        galleryPhotos = data.photos || [];
+        renderGallery();
+        setGalleryStatus('Photo replaced and saved.');
+      } catch(err){
+        setGalleryStatus(err.message || 'Unable to replace photo.', true);
       }
-      galleryInput.value = '';
-      galleryInput.removeEventListener('change', handler);
-    }, {once:true});
-    galleryInput.click();
-  };
+    } else {
+      await uploadPhotos(files);
+    }
 
-  function addSlot(file){
-    const slot = document.createElement('div');
-    slot.className = 'gslot empty';
-    slot.dataset.index = slotCount++;
-    slot.innerHTML = '<div class="gslot-icon">🖼</div><div class="gslot-txt">Click to Upload</div>';
-    galleryGrid.appendChild(slot);
-    if(file) fillSlot(slot, file);
-  }
-
-  addMoreSlots.addEventListener('click', () => {
-    for(let i=0;i<4;i++) addSlot(null);
+    replacingPhotoId = null;
+    galleryInput.value = '';
   });
+
+  loadPersistedGallery();
 
   /* ── Contact form → WhatsApp ── */
   document.getElementById('submitBtn').addEventListener('click', async function(){
