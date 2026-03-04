@@ -1,256 +1,144 @@
+/**
+ * ═══════════════════════════════════════════════════════════
+ *  SimAaryan Stones — Backend Server
+ *  Node.js + Express
+ *
+ *  Features:
+ *  • Serves the frontend (index.html)
+ *  • /api/enquiry  — receives form data, builds WhatsApp URL,
+ *    returns it so the browser opens WhatsApp chat
+ *  • Rate limiting (prevents spam)
+ *  • Helmet security headers
+ *  • CORS configured
+ *  • Request logging
+ * ═══════════════════════════════════════════════════════════
+ */
+
 require('dotenv').config();
 
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const path = require('path');
-const fs = require('fs');
-const fsp = fs.promises;
-const crypto = require('crypto');
+const express      = require('express');
+const cors         = require('cors');
+const helmet       = require('helmet');
+const rateLimit    = require('express-rate-limit');
+const path         = require('path');
 
-const app = express();
+const app  = express();
 const PORT = process.env.PORT || 3000;
-const WA_NUMBER = process.env.WHATSAPP_NUMBER || '918106177797';
+const WA_NUMBER   = process.env.WHATSAPP_NUMBER  || '918106177797';
 const WA_BASE_URL = process.env.WHATSAPP_BASE_URL || 'https://wa.me';
 
-const rootDir = path.join(__dirname, '..', '..');
-const FRONTEND_DIR = fs.existsSync(path.join(rootDir, 'frontend', 'index.html'))
-  ? path.join(rootDir, 'frontend')
-  : rootDir;
+// ── Security & Middleware ─────────────────────────────────────
+app.use(helmet({
+  contentSecurityPolicy: false  // disabled so inline scripts in HTML work
+}));
 
-const GALLERY_DIR = path.join(__dirname, '..', 'data', 'gallery');
-const GALLERY_META_FILE = path.join(__dirname, '..', 'data', 'gallery.json');
-
-app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({
   origin: process.env.CORS_ORIGIN || '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST'],
 }));
-app.use(express.json({ limit: '25mb' }));
+
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ── Simple request logger ─────────────────────────────────────
 app.use((req, res, next) => {
   const now = new Date().toISOString();
   console.log(`[${now}] ${req.method} ${req.url}`);
   next();
 });
 
+// ── Rate limiter for enquiry endpoint ─────────────────────────
 const enquiryLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  message: { success: false, message: 'Too many enquiries from this IP. Please try again later.' },
+  windowMs : 15 * 60 * 1000,  // 15 minutes
+  max      : 10,               // max 10 submissions per IP per window
+  message  : { success: false, message: 'Too many enquiries from this IP. Please try again later.' },
   standardHeaders: true,
-  legacyHeaders: false,
+  legacyHeaders  : false,
 });
 
-const galleryLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 60,
-  message: { success: false, message: 'Too many gallery requests. Please try again later.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
+// ── Serve frontend static files ───────────────────────────────
+const FRONTEND_DIR = path.join(__dirname, '..', '..', 'frontend');
 app.use(express.static(FRONTEND_DIR));
-app.use('/uploads/gallery', express.static(GALLERY_DIR));
 
-async function ensureGalleryStorage() {
-  await fsp.mkdir(GALLERY_DIR, { recursive: true });
-  if (!fs.existsSync(GALLERY_META_FILE)) {
-    await fsp.mkdir(path.dirname(GALLERY_META_FILE), { recursive: true });
-    await fsp.writeFile(GALLERY_META_FILE, '[]', 'utf8');
-  }
-}
-
-async function readGalleryMeta() {
-  await ensureGalleryStorage();
-  const raw = await fsp.readFile(GALLERY_META_FILE, 'utf8');
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-async function writeGalleryMeta(items) {
-  await ensureGalleryStorage();
-  await fsp.writeFile(GALLERY_META_FILE, JSON.stringify(items, null, 2), 'utf8');
-}
-
-function parseDataUrl(dataUrl) {
-  const match = /^data:(image\/(?:png|jpeg|jpg|webp|gif));base64,([A-Za-z0-9+/=\n\r]+)$/.exec(dataUrl || '');
-  if (!match) return null;
-  const mime = match[1].toLowerCase();
-  const extMap = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/jpg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif' };
-  const ext = extMap[mime];
-  if (!ext) return null;
-  return { mime, ext, buffer: Buffer.from(match[2], 'base64') };
-}
-
-async function saveGalleryPhoto(dataUrl) {
-  const parsed = parseDataUrl(dataUrl);
-  if (!parsed) throw new Error('Invalid image data.');
-  if (parsed.buffer.length > 8 * 1024 * 1024) throw new Error('Image is too large. Max 8MB.');
-
-  const id = crypto.randomUUID();
-  const filename = `${id}.${parsed.ext}`;
-  const filepath = path.join(GALLERY_DIR, filename);
-
-  await ensureGalleryStorage();
-  await fsp.writeFile(filepath, parsed.buffer);
-
-  return {
-    id,
-    filename,
-    url: `/uploads/gallery/${filename}`,
-    createdAt: new Date().toISOString(),
-  };
-}
-
-app.get('/api/gallery/photos', galleryLimiter, async (req, res) => {
-  const items = await readGalleryMeta();
-  return res.json({ success: true, photos: items });
-});
-
-app.post('/api/gallery/photos', galleryLimiter, async (req, res) => {
-  try {
-    const incoming = Array.isArray(req.body.photos) ? req.body.photos : [];
-    if (!incoming.length) {
-      return res.status(400).json({ success: false, message: 'No photos received.' });
-    }
-
-    const current = await readGalleryMeta();
-    const created = [];
-    for (const dataUrl of incoming) {
-      const photo = await saveGalleryPhoto(dataUrl);
-      created.push(photo);
-    }
-
-    const updated = [...current, ...created];
-    await writeGalleryMeta(updated);
-    return res.status(201).json({ success: true, photos: created, allPhotos: updated });
-  } catch (err) {
-    return res.status(400).json({ success: false, message: err.message || 'Unable to upload photos.' });
-  }
-});
-
-app.delete('/api/gallery/photos/:id', galleryLimiter, async (req, res) => {
-  const { id } = req.params;
-  const items = await readGalleryMeta();
-  const target = items.find((item) => item.id === id);
-
-  if (!target) {
-    return res.status(404).json({ success: false, message: 'Photo not found.' });
-  }
-
-  const updated = items.filter((item) => item.id !== id);
-  await writeGalleryMeta(updated);
-
-  try {
-    await fsp.unlink(path.join(GALLERY_DIR, target.filename));
-  } catch {
-    // ignore missing file
-  }
-
-  return res.json({ success: true, photos: updated });
-});
-
-app.put('/api/gallery/photos/:id', galleryLimiter, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { photo } = req.body;
-    const items = await readGalleryMeta();
-    const idx = items.findIndex((item) => item.id === id);
-
-    if (idx === -1) {
-      return res.status(404).json({ success: false, message: 'Photo not found.' });
-    }
-
-    const oldPhoto = items[idx];
-    const newPhoto = await saveGalleryPhoto(photo);
-    const replacement = { ...newPhoto, id: oldPhoto.id };
-
-    const oldExt = path.extname(oldPhoto.filename);
-    const replacementFilename = `${oldPhoto.id}${path.extname(newPhoto.filename)}`;
-    await fsp.rename(path.join(GALLERY_DIR, newPhoto.filename), path.join(GALLERY_DIR, replacementFilename));
-
-    replacement.filename = replacementFilename;
-    replacement.url = `/uploads/gallery/${replacementFilename}`;
-
-    items[idx] = replacement;
-    await writeGalleryMeta(items);
-
-    if (oldExt !== path.extname(replacementFilename)) {
-      try {
-        await fsp.unlink(path.join(GALLERY_DIR, oldPhoto.filename));
-      } catch {
-        // ignore
-      }
-    }
-
-    return res.json({ success: true, photo: replacement, photos: items });
-  } catch (err) {
-    return res.status(400).json({ success: false, message: err.message || 'Unable to replace photo.' });
-  }
-});
-
+// ═════════════════════════════════════════════════════════════
+//  POST /api/enquiry
+//  Receives form data → builds WhatsApp message URL → returns it
+// ═════════════════════════════════════════════════════════════
 app.post('/api/enquiry', enquiryLimiter, (req, res) => {
   const {
     firstName = '',
-    lastName = '',
-    phone = '',
-    email = '',
-    granite = '',
-    details = '',
+    lastName  = '',
+    phone     = '',
+    email     = '',
+    granite   = '',
+    details   = '',
   } = req.body;
 
+  // Basic server-side validation
   if (!firstName.trim() || !phone.trim()) {
-    return res.status(400).json({ success: false, message: 'Name and phone number are required.' });
+    return res.status(400).json({
+      success : false,
+      message : 'Name and phone number are required.',
+    });
   }
 
+  // Sanitise inputs (strip any HTML tags)
   const clean = (str) => str.replace(/<[^>]*>/g, '').trim();
-  const name = clean(`${firstName} ${lastName}`);
-  const cleanPh = clean(phone);
-  const cleanEm = clean(email);
-  const cleanGr = clean(granite);
+
+  const name     = clean(`${firstName} ${lastName}`);
+  const cleanPh  = clean(phone);
+  const cleanEm  = clean(email);
+  const cleanGr  = clean(granite);
   const cleanDet = clean(details);
 
+  // Build a nicely-formatted WhatsApp message
   const msgLines = [
     '🪨 *New Enquiry — SimAaryan Stones*',
     '──────────────────────',
     `👤 *Name:* ${name}`,
     `📞 *Phone:* ${cleanPh}`,
   ];
-  if (cleanEm) msgLines.push(`✉️ *Email:* ${cleanEm}`);
-  if (cleanGr) msgLines.push(`🔷 *Granite Interest:* ${cleanGr}`);
+  if (cleanEm)  msgLines.push(`✉️ *Email:* ${cleanEm}`);
+  if (cleanGr)  msgLines.push(`🔷 *Granite Interest:* ${cleanGr}`);
   if (cleanDet) msgLines.push(`📋 *Project Details:*\n${cleanDet}`);
   msgLines.push('──────────────────────');
   msgLines.push('📍 _SimAaryan Stones, Ongole, AP_');
 
-  const message = msgLines.join('\n');
+  const message    = msgLines.join('\n');
   const whatsappURL = `${WA_BASE_URL}/${WA_NUMBER}?text=${encodeURIComponent(message)}`;
 
-  return res.json({ success: true, whatsappURL, message: 'Enquiry received. Redirecting to WhatsApp.' });
-});
+  // Log the enquiry to console (you can also write to a file/database here)
+  console.log('\n─────────── NEW ENQUIRY ───────────');
+  console.log(`Name    : ${name}`);
+  console.log(`Phone   : ${cleanPh}`);
+  console.log(`Email   : ${cleanEm || 'N/A'}`);
+  console.log(`Granite : ${cleanGr || 'N/A'}`);
+  console.log(`Details : ${cleanDet || 'N/A'}`);
+  console.log('───────────────────────────────────\n');
 
-app.get('/api/health', async (req, res) => {
-  const photos = await readGalleryMeta();
-  res.json({
-    status: 'ok',
-    service: 'SimAaryan Stones Backend',
-    galleryPhotoCount: photos.length,
-    time: new Date().toISOString(),
+  return res.json({
+    success      : true,
+    whatsappURL,
+    message      : 'Enquiry received. Redirecting to WhatsApp.',
   });
 });
 
+// ── Health check ──────────────────────────────────────────────
+app.get('/api/health', (req, res) => {
+  res.json({
+    status  : 'ok',
+    service : 'SimAaryan Stones Backend',
+    time    : new Date().toISOString(),
+  });
+});
+
+// ── Catch-all: serve frontend for any unknown route ───────────
 app.get('*', (req, res) => {
   res.sendFile(path.join(FRONTEND_DIR, 'index.html'));
 });
 
-app.listen(PORT, async () => {
-  await ensureGalleryStorage();
+// ── Start server ──────────────────────────────────────────────
+app.listen(PORT, () => {
   console.log(`\n🪨  SimAaryan Stones server running`);
   console.log(`    ➜  http://localhost:${PORT}`);
   console.log(`    ➜  WhatsApp target: ${WA_BASE_URL}/${WA_NUMBER}\n`);

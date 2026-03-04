@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Gallery Setup Guide — SimAaryan Stones</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, 'Segoe UI', sans-serif; background: #f7f4ef; color: #231a10; line-height: 1.7; }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 48px 24px 80px; }
+  h1 { font-size: 2rem; color: #b5451b; margin-bottom: 6px; }
+  .sub { color: #8b6347; margin-bottom: 40px; font-size: 1.05rem; }
+  h2 { font-size: 1.2rem; margin: 36px 0 14px; color: #231a10; display: flex; align-items: center; gap: 10px; }
+  .step-num { background: #b5451b; color: white; width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: .85rem; font-weight: 700; flex-shrink: 0; }
+  p { margin-bottom: 12px; color: #5c3d26; }
+  .card { background: white; border: 1px solid #e0d5c8; border-radius: 8px; padding: 22px 26px; margin: 14px 0; box-shadow: 0 2px 12px rgba(35,26,16,.06); }
+  .card.green { border-left: 4px solid #1d8348; }
+  .card.orange { border-left: 4px solid #b5451b; }
+  .card.blue { border-left: 4px solid #1a5276; }
+  code { background: #f0e8de; color: #b5451b; padding: 2px 7px; border-radius: 3px; font-family: monospace; font-size: .9em; }
+  .img-placeholder {
+    background: linear-gradient(135deg, #e8ddd0, #d5c8b8);
+    border: 2px dashed #c9a882; border-radius: 6px;
+    padding: 28px; text-align: center;
+    color: #8b6347; font-size: .9rem; margin: 12px 0;
+  }
+  a { color: #b5451b; }
+  a:hover { text-decoration: underline; }
+  .tip { background: #fef9f4; border: 1px solid #f0dfc8; border-radius: 6px; padding: 14px 18px; margin: 14px 0; font-size: .9rem; color: #6b4a28; }
+  .tip strong { color: #b5451b; }
+  ul { padding-left: 22px; color: #5c3d26; }
+  ul li { margin-bottom: 7px; }
+  .badge { display: inline-block; background: #1d8348; color: white; font-size: .72rem; padding: 3px 9px; border-radius: 3px; letter-spacing: .05em; }
+  .badge.free { background: #1d8348; }
+  hr { border: none; border-top: 1px solid #e0d5c8; margin: 36px 0; }
+  .header-bar { background: #231a10; padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
+  .header-bar span { font-family: 'Georgia', serif; font-size: 1.2rem; color: white; letter-spacing: .1em; }
+  .header-bar em { color: #b5451b; font-style: normal; }
+</style>
+</head>
+<body>
+<div class="header-bar">
+  <span>SIM<em>AARYAN</em> STONES — Gallery Setup Guide</span>
+</div>
+<div class="wrap">
+  <h1>📸 Persistent Gallery Setup</h1>
+  <p class="sub">Follow these 3 steps (takes ~5 minutes) to enable photos that are <strong>saved permanently</strong> and visible to <strong>all visitors</strong> on your GitHub Pages website.</p>
+
+  <div class="card orange">
+    <strong>How it works:</strong> Photos are uploaded to <strong>ImgBB</strong> (free image host) and the list of photo links is saved to <strong>JSONBin</strong> (free JSON storage). When anyone opens your site, it loads the list from JSONBin and displays the photos from ImgBB — fully automated, no server needed.
+  </div>
+
+  <hr/>
+
+  <!-- STEP 1 -->
+  <h2><span class="step-num">1</span> Get a Free ImgBB API Key <span class="badge free">FREE</span></h2>
+  <p>ImgBB stores your granite photos permanently for free.</p>
+  <div class="card green">
+    <ul>
+      <li>Go to <a href="https://imgbb.com" target="_blank"><strong>imgbb.com</strong></a> and create a free account</li>
+      <li>After login, go to <a href="https://api.imgbb.com" target="_blank"><strong>api.imgbb.com</strong></a></li>
+      <li>Click <strong>"Get API Key"</strong></li>
+      <li>Copy the key — it looks like: <code>a1b2c3d4e5f6789012345678abcdef01</code></li>
+    </ul>
+  </div>
+  <div class="tip">💡 <strong>Tip:</strong> Photos uploaded via this API are permanent and publicly accessible — perfect for a business gallery.</div>
+
+  <hr/>
+
+  <!-- STEP 2 -->
+  <h2><span class="step-num">2</span> Create a Free JSONBin <span class="badge free">FREE</span></h2>
+  <p>JSONBin stores the list of your photo links so every visitor sees the same gallery.</p>
+  <div class="card blue">
+    <ul>
+      <li>Go to <a href="https://jsonbin.io" target="_blank"><strong>jsonbin.io</strong></a> and sign up free</li>
+      <li>Once logged in, click <strong>"Create Bin"</strong></li>
+      <li>In the editor, paste this starting value exactly: <code>[]</code> (empty array)</li>
+      <li>Click <strong>Save</strong></li>
+      <li>Copy your <strong>Bin ID</strong> from the URL — it looks like: <code>64a1b2c3d4e5f6789012abcd</code></li>
+      <li>Go to <strong>Account → API Keys</strong> and copy your <strong>Secret Key</strong> (starts with <code>$2b$...</code>)</li>
+    </ul>
+  </div>
+  <div class="tip">💡 <strong>Tip:</strong> Make sure your bin is set to <strong>Private</strong> — only your secret key can write to it, but anyone can read it (needed for the gallery to load).</div>
+  <div class="tip">⚠️ <strong>JSONBin Free Plan:</strong> Allows up to 10,000 requests/month — more than enough for a business website. The gallery list is fetched once per page visit.</div>
+
+  <hr/>
+
+  <!-- STEP 3 -->
+  <h2><span class="step-num">3</span> Enter Keys on Your Website</h2>
+  <p>Open your website <a href="https://aaryan4r.github.io/SimaaryanStones/#gallery" target="_blank"><strong>aaryan4r.github.io/SimaaryanStones</strong></a> and scroll to the Gallery section.</p>
+  <div class="card green">
+    <ul>
+      <li>Click the <strong>⚙ Admin Upload</strong> button in the gallery toolbar</li>
+      <li>Enter a <strong>password</strong> of your choice (protects the upload button)</li>
+      <li>Paste your <strong>ImgBB API Key</strong></li>
+      <li>Paste your <strong>JSONBin Bin ID</strong></li>
+      <li>Paste your <strong>JSONBin Secret Key</strong></li>
+      <li>Click <strong>Save & Unlock Upload</strong></li>
+      <li>The <strong>Upload Photos</strong> button will appear ✅</li>
+    </ul>
+  </div>
+  <div class="tip">🔒 <strong>Your keys are saved only in your browser</strong> (localStorage). They are never sent anywhere except directly to ImgBB and JSONBin. Visitors cannot see them.</div>
+
+  <hr/>
+
+  <!-- UPLOADING -->
+  <h2><span class="step-num">4</span> Upload Your Granite Photos</h2>
+  <div class="card">
+    <ul>
+      <li>Click <strong>Upload Photos</strong> — select one or multiple images</li>
+      <li>Each photo shows an <strong>animated spinner</strong> while uploading</li>
+      <li>After upload, photos appear in the grid immediately</li>
+      <li>Hover any photo → click <strong>🔍 View Full</strong> to open the full-screen lightbox</li>
+      <li>Hover any photo → click <strong>🗑 Delete</strong> to remove it (admin only)</li>
+      <li><strong>All visitors will see the photos</strong> next time they open the site</li>
+    </ul>
+  </div>
+
+  <hr/>
+
+  <!-- LIGHTBOX -->
+  <h2>🔍 Lightbox — Full Screen Viewer</h2>
+  <div class="card">
+    <ul>
+      <li>Click any photo (or the <strong>🔍 View Full</strong> button) to open it full screen</li>
+      <li>Use <strong>‹ ›</strong> arrows to go to the previous/next photo</li>
+      <li>Press <strong>←→ arrow keys</strong> on keyboard to navigate</li>
+      <li>Press <strong>Escape</strong> or click the <strong>✕</strong> button to close</li>
+      <li>Click anywhere outside the photo to close</li>
+    </ul>
+  </div>
+
+  <hr/>
+
+  <!-- TROUBLESHOOTING -->
+  <h2>⚠️ Troubleshooting</h2>
+  <div class="card">
+    <ul>
+      <li><strong>Upload fails:</strong> Double-check your ImgBB API key — make sure you copied it from <a href="https://api.imgbb.com" target="_blank">api.imgbb.com</a>, not from the main site</li>
+      <li><strong>Gallery not loading:</strong> Check your JSONBin Bin ID and Secret Key. The bin must exist and contain <code>[]</code> initially</li>
+      <li><strong>Photos visible to you but not others:</strong> Make sure the JSONBin bin is set to allow public reads (default setting is fine)</li>
+      <li><strong>Forgot password:</strong> Open browser console → type <code>localStorage.clear()</code> → re-enter all keys</li>
+    </ul>
+  </div>
+
+  <hr/>
+  <p style="text-align:center; color:#8b6347; font-size:.9rem;">© 2026 SimAaryan Stones · Granite Suppliers, Ongole, Andhra Pradesh</p>
+</div>
+</body>
+</html>

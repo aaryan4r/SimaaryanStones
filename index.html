@@ -749,99 +749,110 @@
     .vd-raj-black    { background:linear-gradient(135deg,#1a1a14,#2a2a1e); }
 
     /* ═════════ GALLERY ═════════ */
-    .gallery {
-      padding:110px 64px;
-      background:var(--cream);
+    .gallery { padding:110px 64px; background:var(--cream); }
+    .gallery-hdr { margin-bottom:40px; }
+    .gallery-toolbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; flex-wrap:wrap; gap:14px; }
+    .gallery-info { font-size:.8rem; color:var(--stone); }
+    .admin-toggle-btn {
+      background:none; border:1.5px solid var(--border); border-radius:3px;
+      padding:8px 14px; font-family:'DM Sans',sans-serif;
+      font-size:.7rem; color:var(--stone); cursor:pointer; transition:all .3s;
+      display:flex; align-items:center; gap:6px;
     }
-    .gallery-hdr { margin-bottom:50px; }
-    .gallery-toolbar {
-      display:flex; align-items:center; justify-content:space-between;
-      margin-bottom:28px; flex-wrap:wrap; gap:14px;
+    .admin-toggle-btn:hover { border-color:var(--rust); color:var(--rust); }
+    .admin-panel {
+      display:none; background:white; border:1.5px solid var(--border); border-radius:6px;
+      padding:20px 24px; margin-bottom:22px;
+      box-shadow:0 4px 24px rgba(35,26,16,.08);
     }
-    .gallery-info {
-      font-size:.8rem; color:var(--stone);
-    }
+    .admin-panel.open { display:block; }
+    .admin-panel-title { font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--rust); font-weight:600; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+    .admin-fields { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:14px; }
+    .admin-field label { font-size:.6rem; letter-spacing:.2em; text-transform:uppercase; color:var(--stone); display:block; margin-bottom:5px; }
+    .admin-field input { width:100%; padding:9px 11px; font-size:.8rem; border:1px solid var(--border); border-radius:3px; font-family:'DM Sans',sans-serif; color:var(--dark); transition:border-color .3s; outline:none; }
+    .admin-field input:focus { border-color:var(--rust); }
+    .admin-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .admin-save-btn { background:var(--rust); color:white; border:none; border-radius:3px; padding:10px 22px; font-family:'DM Sans',sans-serif; font-size:.72rem; font-weight:500; letter-spacing:.15em; text-transform:uppercase; cursor:pointer; transition:background .3s; }
+    .admin-save-btn:hover { background:#8a3214; }
+    .admin-status { font-size:.72rem; color:var(--stone); }
+    .admin-status.ok { color:#1d8348; }
+    .admin-status.err { color:#c0392b; }
     .upload-btn-main {
       display:inline-flex; align-items:center; gap:10px;
       background:var(--rust); color:white;
       padding:13px 28px; border-radius:3px; border:none;
       font-family:'DM Sans',sans-serif;
       font-size:.76rem; font-weight:500; letter-spacing:.18em;
-      text-transform:uppercase; cursor:pointer;
-      transition:all .3s;
+      text-transform:uppercase; cursor:pointer; transition:all .3s;
     }
     .upload-btn-main:hover { background:#8a3214; transform:translateY(-2px); }
+    .upload-btn-main:disabled { background:#aaa; transform:none; cursor:not-allowed; }
     .upload-btn-main svg { flex-shrink:0; }
     #galleryInput { display:none; }
-
-    .gallery-grid {
-      display:grid; grid-template-columns:repeat(4,1fr);
-      gap:16px;
-    }
+    .gallery-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
     .gslot {
       aspect-ratio:4/3; border-radius:5px; overflow:hidden;
       position:relative; cursor:pointer;
-      border:2px dashed var(--border);
-      background:white;
+      border:2px dashed var(--border); background:white;
       display:flex; flex-direction:column; align-items:center; justify-content:center;
       transition:border-color .3s, background .3s;
       box-shadow:0 2px 12px rgba(35,26,16,.05);
     }
     .gslot.empty:hover { border-color:var(--rust); background:rgba(181,69,27,.03); }
-    .gslot.filled { border:none; }
-    .gslot.filled img { width:100%; height:100%; object-fit:cover; display:block; }
+    .gslot.filled { border:none; cursor:pointer; }
+    .gslot.filled img { width:100%; height:100%; object-fit:cover; display:block; transition:transform .4s ease; }
+    .gslot.filled:hover img { transform:scale(1.04); }
+    .gslot.uploading { border-color:var(--gold); background:rgba(184,131,42,.05); cursor:wait; }
     .gslot-icon { font-size:1.6rem; margin-bottom:8px; opacity:.4; }
     .gslot-txt { font-size:.7rem; color:var(--stone); letter-spacing:.12em; text-transform:uppercase; opacity:.7; }
+    .gslot-spinner { width:32px; height:32px; border:3px solid rgba(181,69,27,.2); border-top-color:var(--rust); border-radius:50%; animation:spin .8s linear infinite; margin-bottom:10px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .gslot-upload-txt { font-size:.68rem; color:var(--rust); letter-spacing:.12em; text-transform:uppercase; }
     .gslot-overlay {
       position:absolute; inset:0;
-      background:rgba(35,26,16,.75);
-      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+      background:rgba(35,26,16,.78);
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
       opacity:0; transition:opacity .3s;
     }
     .gslot.filled:hover .gslot-overlay { opacity:1; }
     .gslot-overlay button {
-      background:none; border:1.5px solid rgba(249,243,235,.6); border-radius:2px;
-      color:rgba(249,243,235,.9); padding:8px 18px;
-      font-family:'DM Sans',sans-serif; font-size:.68rem; letter-spacing:.15em;
+      background:none; border:1.5px solid rgba(249,243,235,.65); border-radius:2px;
+      color:rgba(249,243,235,.92); padding:7px 16px;
+      font-family:'DM Sans',sans-serif; font-size:.66rem; letter-spacing:.14em;
       text-transform:uppercase; cursor:pointer; transition:all .25s;
     }
     .gslot-overlay button:hover { background:var(--rust); border-color:var(--rust); }
+    .gslot-overlay .view-btn { background:rgba(249,243,235,.12); border-color:rgba(249,243,235,.8); font-size:.72rem; padding:9px 20px; }
+    .gslot-overlay .view-btn:hover { background:white; color:var(--dark); border-color:white; }
     .gslot-caption {
       position:absolute; bottom:0; left:0; right:0;
-      background:linear-gradient(to top,rgba(35,26,16,.85),transparent);
-      padding:16px 14px 12px; font-size:.72rem;
-      color:rgba(249,243,235,.9); font-style:italic;
+      background:linear-gradient(to top,rgba(35,26,16,.82),transparent);
+      padding:16px 14px 11px; font-size:.7rem;
+      color:rgba(249,243,235,.88); font-style:italic; pointer-events:none;
     }
-    .add-slot-row {
-      margin-top:18px; display:flex; justify-content:center;
-    }
+    .add-slot-row { margin-top:18px; display:flex; justify-content:center; }
     .add-slot-btn {
       background:white; border:1.5px solid var(--border); border-radius:3px;
       padding:11px 28px; font-family:'DM Sans',sans-serif;
       font-size:.74rem; font-weight:500; letter-spacing:.15em;
-      text-transform:uppercase; color:var(--mid); cursor:pointer;
-      transition:all .3s;
+      text-transform:uppercase; color:var(--mid); cursor:pointer; transition:all .3s;
       display:flex; align-items:center; gap:8px;
     }
     .add-slot-btn:hover { border-color:var(--rust); color:var(--rust); }
-
-
-    .gallery-lightbox {
-      position:fixed; inset:0; background:rgba(20,14,9,.9);
-      display:none; align-items:center; justify-content:center;
-      z-index:1200; padding:26px;
-    }
-    .gallery-lightbox.open { display:flex; }
-    .gallery-lightbox img {
-      max-width:min(1100px,92vw); max-height:90vh;
-      border-radius:8px; box-shadow:0 20px 60px rgba(0,0,0,.45);
-    }
-    .lightbox-close {
-      position:absolute; top:20px; right:24px;
-      background:transparent; border:1px solid rgba(249,243,235,.6);
-      color:rgba(249,243,235,.9); width:40px; height:40px;
-      border-radius:50%; font-size:1.2rem; cursor:pointer;
-    }
+    /* ── LIGHTBOX ── */
+    .lightbox { display:none; position:fixed; inset:0; z-index:2000; background:rgba(12,8,4,.95); align-items:center; justify-content:center; backdrop-filter:blur(8px); animation:lbIn .25s ease; }
+    @keyframes lbIn { from{opacity:0} to{opacity:1} }
+    .lightbox.open { display:flex; }
+    .lb-img-wrap { position:relative; max-width:90vw; max-height:88vh; display:flex; align-items:center; justify-content:center; }
+    .lb-img-wrap img { max-width:88vw; max-height:82vh; border-radius:4px; box-shadow:0 24px 80px rgba(0,0,0,.7); display:block; object-fit:contain; }
+    .lb-close { position:fixed; top:20px; right:24px; width:44px; height:44px; border-radius:50%; background:rgba(249,243,235,.1); border:1.5px solid rgba(249,243,235,.3); color:white; font-size:1.3rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .25s, transform .25s; z-index:2002; }
+    .lb-close:hover { background:var(--rust); transform:scale(1.1); }
+    .lb-prev,.lb-next { position:fixed; top:50%; transform:translateY(-50%); width:48px; height:48px; border-radius:50%; background:rgba(249,243,235,.1); border:1.5px solid rgba(249,243,235,.25); color:white; font-size:1.4rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .25s; z-index:2001; }
+    .lb-prev { left:16px; }
+    .lb-next { right:16px; }
+    .lb-prev:hover,.lb-next:hover { background:var(--rust); }
+    .lb-counter { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); font-size:.68rem; letter-spacing:.2em; text-transform:uppercase; color:rgba(249,243,235,.45); }
+    .lb-caption { position:fixed; bottom:38px; left:50%; transform:translateX(-50%); font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1rem; color:rgba(249,243,235,.75); white-space:nowrap; }
 
     /* ═════════ APPLICATIONS ═════════ */
     .applications {
@@ -1325,23 +1336,83 @@
 <div class="div-line"></div>
 
 <!-- ═══════════════════ GALLERY ═══════════════════ -->
-<section class="gallery" id="gallery" aria-label="SimAaryan Stones granite gallery — upload your project photos">
+<section class="gallery" id="gallery" aria-label="SimAaryan Stones granite gallery — project photos">
   <div class="gallery-hdr">
     <p class="sec-lbl r">Photo Gallery</p>
     <h2 class="sec-h2 r d1">Our Work in <em>Real Projects</em></h2>
-    <p class="sec-p r d2" style="max-width:560px">Browse our granite installations — <strong>granite for kitchen countertops</strong>, flooring designs, bathroom vanity tops, stairs, and wall cladding. Upload your project photos below.</p>
+    <p class="sec-p r d2" style="max-width:560px">Browse our granite installations — countertops, flooring, bathroom vanity tops, stairs, and wall cladding. Click any photo to view full screen.</p>
   </div>
+
+  <!-- Admin toolbar -->
   <div class="gallery-toolbar">
-    <span class="gallery-info r" id="galleryCount">0 photos uploaded</span>
-    <button class="upload-btn-main r d1" id="uploadTrigger">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      Upload Photos
-    </button>
+    <span class="gallery-info r" id="galleryCount">Loading gallery…</span>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <button class="admin-toggle-btn r" id="adminToggle">⚙ Admin Upload</button>
+      <button class="upload-btn-main r d1" id="uploadTrigger" style="display:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Upload Photos
+      </button>
+    </div>
   </div>
+
+  <!-- Admin config panel (hidden until password entered) -->
+  <div class="admin-panel r" id="adminPanel">
+    <div class="admin-panel-title">🔑 Admin Setup — Enter your API keys to enable persistent gallery</div>
+    <div class="admin-fields">
+      <div class="admin-field">
+        <label>Admin Password</label>
+        <input type="password" id="adminPass" placeholder="Set a password"/>
+      </div>
+      <div class="admin-field">
+        <label>ImgBB API Key <a href="https://api.imgbb.com" target="_blank" style="color:var(--rust);font-size:.55rem;">(get free key)</a></label>
+        <input type="text" id="imgbbKey" placeholder="Paste your ImgBB key here"/>
+      </div>
+      <div class="admin-field">
+        <label>JSONBin Bin ID <a href="https://jsonbin.io" target="_blank" style="color:var(--rust);font-size:.55rem;">(get free bin)</a></label>
+        <input type="text" id="jsonbinId" placeholder="Paste JSONBin bin ID"/>
+      </div>
+    </div>
+    <div class="admin-fields" style="grid-template-columns:1fr 1fr 1fr;margin-top:0">
+      <div class="admin-field">
+        <label>JSONBin Access Key</label>
+        <input type="password" id="jsonbinKey" placeholder="Paste JSONBin secret key"/>
+      </div>
+      <div></div>
+      <div></div>
+    </div>
+    <div class="admin-actions">
+      <button class="admin-save-btn" id="adminSaveBtn">Save & Unlock Upload</button>
+      <span class="admin-status" id="adminStatus"></span>
+    </div>
+    <p style="font-size:.62rem;color:var(--stone);margin-top:12px;line-height:1.6;">
+      📌 <strong>Setup takes 3 minutes:</strong> (1) Get a free API key from imgbb.com → (2) Create a free bin at jsonbin.io → (3) Paste both keys above → (4) Upload photos. They'll be saved permanently and visible to all visitors.
+    </p>
+  </div>
+
   <input type="file" id="galleryInput" accept="image/*" multiple/>
-  <div class="gallery-grid" id="galleryGrid"></div>
-  <div class="gallery-info" id="galleryStatus" style="margin-top:12px"></div>
+  <div class="gallery-grid" id="galleryGrid">
+    <!-- Filled dynamically from JSONBin -->
+    <div class="gslot empty r"   data-index="0"><div class="gslot-icon">🖼</div><div class="gslot-txt">No Photos Yet</div></div>
+    <div class="gslot empty r d1" data-index="1"><div class="gslot-icon">🖼</div><div class="gslot-txt">No Photos Yet</div></div>
+    <div class="gslot empty r d2" data-index="2"><div class="gslot-icon">🖼</div><div class="gslot-txt">No Photos Yet</div></div>
+    <div class="gslot empty r d3" data-index="3"><div class="gslot-icon">🖼</div><div class="gslot-txt">No Photos Yet</div></div>
+  </div>
+  <div class="add-slot-row" id="addSlotRow" style="display:none;">
+    <button class="add-slot-btn" id="addMoreSlots">+ Load More</button>
+  </div>
 </section>
+
+<!-- ── LIGHTBOX ── -->
+<div class="lightbox" id="lightbox">
+  <button class="lb-close" id="lbClose">✕</button>
+  <button class="lb-prev"  id="lbPrev">‹</button>
+  <div class="lb-img-wrap">
+    <img id="lbImg" src="" alt="Granite project photo — SimAaryan Stones"/>
+  </div>
+  <button class="lb-next"  id="lbNext">›</button>
+  <div class="lb-caption"  id="lbCaption"></div>
+  <div class="lb-counter"  id="lbCounter"></div>
+</div>
 
 <!-- ═══════════════════ APPLICATIONS ═══════════════════ -->
 <section class="applications" id="applications" aria-label="Granite applications — countertops, flooring, stairs, cladding">
@@ -1606,12 +1677,6 @@
 </footer>
 
 <!-- ═══════════════════ JAVASCRIPT ═══════════════════ -->
-
-<div class="gallery-lightbox" id="galleryLightbox" aria-hidden="true">
-  <button class="lightbox-close" id="lightboxClose" aria-label="Close photo viewer">✕</button>
-  <img id="lightboxImage" src="" alt="Uploaded granite project photo"/>
-</div>
-
 <script>
   /* ── Custom cursor ── */
   const cur = document.getElementById('cur');
@@ -1692,184 +1757,335 @@
     });
   });
 
-  /* ── GALLERY UPLOAD SYSTEM ── */
-  const galleryGrid = document.getElementById('galleryGrid');
-  const galleryInput = document.getElementById('galleryInput');
-  const uploadTrigger = document.getElementById('uploadTrigger');
-  const galleryCount = document.getElementById('galleryCount');
-  const galleryStatus = document.getElementById('galleryStatus');
-  const galleryLightbox = document.getElementById('galleryLightbox');
-  const lightboxImage = document.getElementById('lightboxImage');
-  const lightboxClose = document.getElementById('lightboxClose');
+  /* ══════════════════════════════════════════════════════
+     GALLERY — Persistent via ImgBB + JSONBin
+     ══════════════════════════════════════════════════════ */
 
-  const MIN_GALLERY_SLOTS = 8;
-  let galleryPhotos = [];
-  let replacingPhotoId = null;
+  // ── Storage keys ──
+  const LS_IMGBB   = 'sas_imgbb_key';
+  const LS_BINID   = 'sas_bin_id';
+  const LS_BINKEY  = 'sas_bin_key';
+  const LS_PASS    = 'sas_admin_pass';
+  const LS_UNLOCKED = 'sas_admin_unlocked';
 
-  function updateCount(){
-    galleryCount.textContent = galleryPhotos.length + ' photo' + (galleryPhotos.length !== 1 ? 's' : '') + ' uploaded';
+  // ── State ──
+  let galleryPhotos  = [];   // [{url, thumb, caption}]
+  let adminUnlocked  = false;
+  let lbCurrentIndex = 0;
+
+  // ── DOM refs ──
+  const galleryGrid    = document.getElementById('galleryGrid');
+  const galleryInput   = document.getElementById('galleryInput');
+  const uploadTrigger  = document.getElementById('uploadTrigger');
+  const galleryCount   = document.getElementById('galleryCount');
+  const adminToggle    = document.getElementById('adminToggle');
+  const adminPanel     = document.getElementById('adminPanel');
+  const adminSaveBtn   = document.getElementById('adminSaveBtn');
+  const adminStatus    = document.getElementById('adminStatus');
+  const addSlotRow     = document.getElementById('addSlotRow');
+  const addMoreSlots   = document.getElementById('addMoreSlots');
+  const lightbox       = document.getElementById('lightbox');
+  const lbImg          = document.getElementById('lbImg');
+  const lbCaption      = document.getElementById('lbCaption');
+  const lbCounter      = document.getElementById('lbCounter');
+  const lbClose        = document.getElementById('lbClose');
+  const lbPrev         = document.getElementById('lbPrev');
+  const lbNext         = document.getElementById('lbNext');
+
+  // ── Helpers ──
+  function getImgBBKey()  { return localStorage.getItem(LS_IMGBB)  || ''; }
+  function getBinId()     { return localStorage.getItem(LS_BINID)   || ''; }
+  function getBinKey()    { return localStorage.getItem(LS_BINKEY) || ''; }
+  function getAdminPass() { return localStorage.getItem(LS_PASS)   || ''; }
+
+  function setStatus(msg, type='') {
+    adminStatus.textContent = msg;
+    adminStatus.className = 'admin-status ' + type;
   }
 
-  function setGalleryStatus(message, isError = false){
-    galleryStatus.textContent = message || '';
-    galleryStatus.style.color = isError ? '#b5451b' : 'var(--stone)';
+  // ── Pre-fill saved keys ──
+  document.getElementById('imgbbKey').value  = getImgBBKey();
+  document.getElementById('jsonbinId').value = getBinId();
+  document.getElementById('jsonbinKey').value= getBinKey();
+  if (getAdminPass()) document.getElementById('adminPass').value = '••••••••';
+
+  // ── Restore unlocked state ──
+  if (localStorage.getItem(LS_UNLOCKED) === '1' && getImgBBKey() && getBinId()) {
+    adminUnlocked = true;
+    uploadTrigger.style.display = 'inline-flex';
+    adminToggle.textContent = '⚙ Admin (Unlocked)';
+    adminToggle.style.borderColor = 'var(--gold)';
+    adminToggle.style.color = 'var(--gold)';
   }
 
-  function createEmptySlot(){
-    const slot = document.createElement('div');
-    slot.className = 'gslot empty';
-    slot.innerHTML = '<div class="gslot-icon">🖼</div><div class="gslot-txt">Click to Upload</div>';
-    return slot;
-  }
+  // ── Toggle admin panel ──
+  adminToggle.addEventListener('click', () => {
+    adminPanel.classList.toggle('open');
+  });
 
-  function createFilledSlot(photo){
-    const slot = document.createElement('div');
-    slot.className = 'gslot filled';
-    slot.dataset.photoId = photo.id;
-    slot.innerHTML = `
-      <img src="${photo.url}" alt="Granite project photo — SimAaryan Stones Ongole" loading="lazy"/>
-      <div class="gslot-caption">SimAaryan Stones — Granite Project</div>
-      <div class="gslot-overlay">
-        <button type="button" onclick="viewPhoto('${photo.url}')">View Photo</button>
-        <button type="button" onclick="replacePhoto('${photo.id}')">Replace</button>
-        <button type="button" onclick="removePhoto('${photo.id}')">Remove Photo</button>
-      </div>`;
-    return slot;
-  }
+  // ── Save admin keys ──
+  adminSaveBtn.addEventListener('click', () => {
+    const pass    = document.getElementById('adminPass').value.trim();
+    const imgbb   = document.getElementById('imgbbKey').value.trim();
+    const binId   = document.getElementById('jsonbinId').value.trim();
+    const binKey  = document.getElementById('jsonbinKey').value.trim();
 
-  function renderGallery(){
-    galleryGrid.innerHTML = '';
-    galleryPhotos.forEach(photo => galleryGrid.appendChild(createFilledSlot(photo)));
-    const emptySlots = Math.max(MIN_GALLERY_SLOTS - galleryPhotos.length, 0);
-    for(let i=0;i<emptySlots;i++) galleryGrid.appendChild(createEmptySlot());
-    updateCount();
-  }
+    if (!imgbb || !binId || !binKey) {
+      setStatus('⚠ Please fill in all three API fields.', 'err');
+      return;
+    }
+    if (!pass) {
+      setStatus('⚠ Set an admin password to protect uploads.', 'err');
+      return;
+    }
 
-  async function readFilesAsDataUrls(files){
-    const tasks = files.map(file => new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(new Error('Unable to read selected image.'));
-      reader.readAsDataURL(file);
-    }));
-    return Promise.all(tasks);
-  }
+    localStorage.setItem(LS_IMGBB,  imgbb);
+    localStorage.setItem(LS_BINID,  binId);
+    localStorage.setItem(LS_BINKEY, binKey);
+    localStorage.setItem(LS_PASS,   pass);
+    localStorage.setItem(LS_UNLOCKED, '1');
 
-  async function uploadPhotos(files){
-    if(!files.length) return;
-    setGalleryStatus('Uploading photos...');
+    adminUnlocked = true;
+    uploadTrigger.style.display = 'inline-flex';
+    adminToggle.textContent = '⚙ Admin (Unlocked)';
+    adminToggle.style.borderColor = 'var(--gold)';
+    adminToggle.style.color = 'var(--gold)';
+    adminPanel.classList.remove('open');
+    setStatus('✓ Keys saved! Upload is now enabled.', 'ok');
+  });
+
+  /* ─────────────────────────────────────────────
+     LOAD gallery from JSONBin on page load
+  ───────────────────────────────────────────── */
+  async function loadGallery() {
+    const binId  = getBinId();
+    const binKey = getBinKey();
+
+    if (!binId || !binKey) {
+      galleryCount.textContent = 'Configure admin to enable persistent gallery';
+      renderEmptySlots(4);
+      return;
+    }
+
+    galleryCount.textContent = 'Loading gallery…';
     try {
-      const photos = await readFilesAsDataUrls(files);
-      const resp = await fetch('/api/gallery/photos', {
-        method:'POST',
-        headers:{ 'Content-Type':'application/json' },
-        body: JSON.stringify({ photos }),
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+        headers: { 'X-Master-Key': binKey, 'X-Bin-Meta': 'false' }
       });
-      const data = await resp.json();
-      if(!resp.ok || !data.success) throw new Error(data.message || 'Upload failed');
-      galleryPhotos = data.allPhotos || [];
+      if (!res.ok) throw new Error('fetch failed');
+      const data = await res.json();
+      galleryPhotos = Array.isArray(data) ? data : (data.photos || []);
       renderGallery();
-      setGalleryStatus('Photos uploaded and saved successfully.');
-    } catch(err){
-      setGalleryStatus(err.message || 'Unable to upload photos.', true);
+    } catch(e) {
+      console.warn('Gallery load failed:', e);
+      galleryCount.textContent = 'Gallery unavailable — check API keys';
+      renderEmptySlots(4);
     }
   }
 
-  async function loadPersistedGallery(){
-    setGalleryStatus('Loading gallery...');
-    try {
-      const resp = await fetch('/api/gallery/photos');
-      const data = await resp.json();
-      if(!resp.ok || !data.success) throw new Error(data.message || 'Failed to load gallery');
-      galleryPhotos = Array.isArray(data.photos) ? data.photos : [];
-      renderGallery();
-      setGalleryStatus('Gallery is synced from server.');
-    } catch(err){
-      renderGallery();
-      setGalleryStatus('Gallery server unavailable. Uploaded photos cannot be shared right now.', true);
+  function renderEmptySlots(n) {
+    galleryGrid.innerHTML = '';
+    for (let i = 0; i < n; i++) {
+      const d = document.createElement('div');
+      d.className = 'gslot empty r';
+      d.dataset.index = i;
+      d.innerHTML = '<div class="gslot-icon">🖼</div><div class="gslot-txt">No Photos Yet</div>';
+      galleryGrid.appendChild(d);
     }
   }
 
-  window.removePhoto = async function(photoId){
-    setGalleryStatus('Removing photo...');
-    try {
-      const resp = await fetch(`/api/gallery/photos/${photoId}`, { method:'DELETE' });
-      const data = await resp.json();
-      if(!resp.ok || !data.success) throw new Error(data.message || 'Unable to remove photo');
-      galleryPhotos = data.photos || [];
-      renderGallery();
-      setGalleryStatus('Photo removed.');
-    } catch(err){
-      setGalleryStatus(err.message || 'Unable to remove photo.', true);
+  function renderGallery() {
+    galleryGrid.innerHTML = '';
+    if (galleryPhotos.length === 0) {
+      renderEmptySlots(4);
+      galleryCount.textContent = 'No photos yet — admin can upload';
+      return;
     }
-  };
 
-  window.replacePhoto = function(photoId){
-    replacingPhotoId = photoId;
-    galleryInput.multiple = false;
-    galleryInput.click();
-  };
+    galleryPhotos.forEach((photo, i) => {
+      const slot = document.createElement('div');
+      slot.className = 'gslot filled r';
+      slot.dataset.index = i;
+      slot.innerHTML = `
+        <img src="${photo.thumb || photo.url}"
+             alt="Granite project — SimAaryan Stones Ongole"
+             loading="lazy"
+             onerror="this.src='${photo.url}'"/>
+        <div class="gslot-caption">${photo.caption || 'SimAaryan Stones — Granite Project'}</div>
+        <div class="gslot-overlay">
+          <button class="view-btn" onclick="openLightbox(${i})">🔍 View Full</button>
+          ${adminUnlocked ? `<button onclick="deletePhoto(${i})">🗑 Delete</button>` : ''}
+        </div>`;
+      galleryGrid.appendChild(slot);
+    });
 
-  window.viewPhoto = function(url){
-    lightboxImage.src = url;
-    galleryLightbox.classList.add('open');
-    galleryLightbox.setAttribute('aria-hidden', 'false');
-  };
+    // Always keep one empty "upload" slot at the end if admin is logged in
+    if (adminUnlocked) {
+      const addSlot = document.createElement('div');
+      addSlot.className = 'gslot empty r';
+      addSlot.id = 'addSlotBtn';
+      addSlot.innerHTML = '<div class="gslot-icon">➕</div><div class="gslot-txt">Add Photo</div>';
+      addSlot.addEventListener('click', () => {
+        galleryInput.multiple = true;
+        galleryInput.click();
+      });
+      galleryGrid.appendChild(addSlot);
+    }
 
-  lightboxClose.addEventListener('click', () => {
-    galleryLightbox.classList.remove('open');
-    galleryLightbox.setAttribute('aria-hidden', 'true');
-    lightboxImage.src = '';
+    galleryCount.textContent = `${galleryPhotos.length} photo${galleryPhotos.length !== 1 ? 's' : ''} in gallery`;
+  }
+
+  /* ─────────────────────────────────────────────
+     SAVE gallery list to JSONBin
+  ───────────────────────────────────────────── */
+  async function saveGallery() {
+    const binId  = getBinId();
+    const binKey = getBinKey();
+    await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+      method : 'PUT',
+      headers: {
+        'Content-Type' : 'application/json',
+        'X-Master-Key' : binKey,
+      },
+      body: JSON.stringify(galleryPhotos)
+    });
+  }
+
+  /* ─────────────────────────────────────────────
+     UPLOAD to ImgBB
+  ───────────────────────────────────────────── */
+  async function uploadToImgBB(file) {
+    const apiKey = getImgBBKey();
+    if (!apiKey) throw new Error('No ImgBB key configured');
+
+    const form = new FormData();
+    form.append('image', file);
+
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+      method: 'POST',
+      body: form
+    });
+    if (!res.ok) throw new Error('ImgBB upload failed');
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error?.message || 'ImgBB error');
+
+    return {
+      url:     data.data.url,
+      thumb:   data.data.thumb?.url || data.data.medium?.url || data.data.url,
+      caption: 'SimAaryan Stones — Granite Project',
+      delete:  data.data.delete_url,
+    };
+  }
+
+  /* ─────────────────────────────────────────────
+     Handle file selection → upload → save
+  ───────────────────────────────────────────── */
+  galleryInput.addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    if (!adminUnlocked) {
+      alert('Please unlock admin first.');
+      return;
+    }
+
+    uploadTrigger.disabled = true;
+    uploadTrigger.textContent = 'Uploading…';
+
+    for (const file of files) {
+      // Show a spinner slot
+      const spinnerSlot = document.createElement('div');
+      spinnerSlot.className = 'gslot uploading';
+      spinnerSlot.innerHTML = `<div class="gslot-spinner"></div><div class="gslot-upload-txt">Uploading…</div>`;
+      // Remove the "add" slot temporarily
+      const addBtn = document.getElementById('addSlotBtn');
+      if (addBtn) galleryGrid.removeChild(addBtn);
+      galleryGrid.appendChild(spinnerSlot);
+
+      try {
+        const photo = await uploadToImgBB(file);
+        galleryPhotos.push(photo);
+        await saveGallery();
+      } catch(err) {
+        console.error('Upload error:', err);
+        alert('Upload failed: ' + err.message + '\n\nCheck your ImgBB API key.');
+      }
+      galleryGrid.removeChild(spinnerSlot);
+    }
+
+    uploadTrigger.disabled = false;
+    uploadTrigger.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Upload Photos';
+    galleryInput.value = '';
+    renderGallery();
   });
 
-  galleryLightbox.addEventListener('click', e => {
-    if(e.target === galleryLightbox) lightboxClose.click();
-  });
-
+  // Upload button click
   uploadTrigger.addEventListener('click', () => {
-    replacingPhotoId = null;
+    if (!adminUnlocked) { alert('Please save your API keys first.'); return; }
     galleryInput.multiple = true;
     galleryInput.click();
   });
 
+  /* ─────────────────────────────────────────────
+     DELETE photo (admin only)
+  ───────────────────────────────────────────── */
+  window.deletePhoto = async function(index) {
+    if (!confirm('Delete this photo? This cannot be undone.')) return;
+    galleryPhotos.splice(index, 1);
+    await saveGallery();
+    renderGallery();
+    galleryCount.textContent = `${galleryPhotos.length} photo${galleryPhotos.length !== 1 ? 's' : ''} in gallery`;
+  };
+
+  /* ─────────────────────────────────────────────
+     LIGHTBOX
+  ───────────────────────────────────────────── */
+  window.openLightbox = function(index) {
+    if (!galleryPhotos.length) return;
+    lbCurrentIndex = index;
+    showLbPhoto();
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+
+  function showLbPhoto() {
+    const photo = galleryPhotos[lbCurrentIndex];
+    if (!photo) return;
+    lbImg.src = photo.url;
+    lbCaption.textContent = photo.caption || 'SimAaryan Stones — Granite Project';
+    lbCounter.textContent = (lbCurrentIndex + 1) + ' / ' + galleryPhotos.length;
+    lbPrev.style.display = lbCurrentIndex > 0 ? 'flex' : 'none';
+    lbNext.style.display = lbCurrentIndex < galleryPhotos.length - 1 ? 'flex' : 'none';
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  lbClose.addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
+  lbPrev.addEventListener('click', () => { if (lbCurrentIndex > 0) { lbCurrentIndex--; showLbPhoto(); } });
+  lbNext.addEventListener('click', () => { if (lbCurrentIndex < galleryPhotos.length - 1) { lbCurrentIndex++; showLbPhoto(); } });
+
+  // Keyboard navigation
+  document.addEventListener('keydown', e => {
+    if (!lightbox.classList.contains('open')) return;
+    if (e.key === 'Escape')      closeLightbox();
+    if (e.key === 'ArrowLeft')   { if (lbCurrentIndex > 0) { lbCurrentIndex--; showLbPhoto(); } }
+    if (e.key === 'ArrowRight')  { if (lbCurrentIndex < galleryPhotos.length - 1) { lbCurrentIndex++; showLbPhoto(); } }
+  });
+
+  // Also open lightbox when clicking a filled slot directly (not overlay button)
   galleryGrid.addEventListener('click', e => {
-    if(e.target.closest('.gslot.empty')) {
-      replacingPhotoId = null;
-      galleryInput.multiple = true;
-      galleryInput.click();
-    }
+    const slot = e.target.closest('.gslot.filled');
+    if (!slot || e.target.closest('button')) return;
+    const idx = parseInt(slot.dataset.index);
+    if (!isNaN(idx)) openLightbox(idx);
   });
 
-  galleryInput.addEventListener('change', async e => {
-    const files = Array.from(e.target.files || []);
-    if(!files.length) return;
-
-    if(replacingPhotoId){
-      setGalleryStatus('Replacing photo...');
-      try {
-        const [photo] = await readFilesAsDataUrls([files[0]]);
-        const resp = await fetch(`/api/gallery/photos/${replacingPhotoId}`, {
-          method:'PUT',
-          headers:{ 'Content-Type':'application/json' },
-          body: JSON.stringify({ photo }),
-        });
-        const data = await resp.json();
-        if(!resp.ok || !data.success) throw new Error(data.message || 'Unable to replace photo');
-        galleryPhotos = data.photos || [];
-        renderGallery();
-        setGalleryStatus('Photo replaced and saved.');
-      } catch(err){
-        setGalleryStatus(err.message || 'Unable to replace photo.', true);
-      }
-    } else {
-      await uploadPhotos(files);
-    }
-
-    replacingPhotoId = null;
-    galleryInput.value = '';
-  });
-
-  loadPersistedGallery();
+  // ── Boot ──
+  loadGallery();
 
   /* ── Contact form → WhatsApp ── */
   document.getElementById('submitBtn').addEventListener('click', async function(){
@@ -1951,4 +2167,3 @@
 </script>
 </body>
 </html>
-
