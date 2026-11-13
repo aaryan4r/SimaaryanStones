@@ -1,0 +1,42 @@
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { randomBytes, scryptSync } = require('node:crypto');
+const Module = require('node:module');
+const { newDb } = require('pg-mem');
+
+test('login and gallery uploads enforce authorization and persist images', async t => {
+  const salt = randomBytes(16), password = 'test-only-long-password';
+  process.env.DATABASE_URL = 'postgres://test:test@localhost/test';
+  process.env.ADMIN_USERNAME = 'test-admin';
+  process.env.ADMIN_PASSWORD_HASH = `scrypt$${salt.toString('hex')}$${scryptSync(password, salt, 64).toString('hex')}`;
+  process.env.SESSION_SECRET = 'test-only-session-secret-at-least-32-chars';
+  process.env.CORS_ORIGIN = 'http://localhost:4174';
+  process.env.PORT = '0';
+  const fakePg = newDb().adapters.createPg();
+  const originalLoad = Module._load;
+  Module._load = function (request, ...args) { return request === 'pg' ? fakePg : originalLoad.call(this, request, ...args); };
+  let api;
+  try { api = require('../src/server'); } finally { Module._load = originalLoad; }
+  const server = await api.start();
+  await new Promise(resolve => server.once('listening', resolve));
+  t.after(async () => { await new Promise(resolve => server.close(resolve)); await api.pool.end(); });
+  const base = `http://127.0.0.1:${server.address().port}`;
+  let response = await fetch(base + '/api/health'); assert.equal(response.status, 200);
+  response = await fetch(base + '/api/admin/photos', { method: 'POST' }); assert.equal(response.status, 401);
+  response = await fetch(base + '/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'test-admin', password: 'wrong' }) }); assert.equal(response.status, 401);
+  response = await fetch(base + '/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'test-admin', password }) }); assert.equal(response.status, 200);
+  const { token } = await response.json();
+  const body = new FormData(); body.append('caption', 'Test granite'); body.append('photo', new Blob([Buffer.from('89504e470d0a1a0a010203', 'hex')], { type: 'image/png' }), 'test.png');
+  response = await fetch(base + '/api/admin/photos', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body }); assert.equal(response.status, 201);
+  const created = await response.json();
+  response = await fetch(base + '/api/photos'); const photos = await response.json(); assert.equal(photos[0].caption, 'Test granite');
+  response = await fetch(base + '/api/photos/' + created.id); assert.equal(response.status, 200); assert.match(response.headers.get('content-type'), /^image\/png/);
+  const update = (currentPassword, newUsername, newPassword, authorization = token) => fetch(base + '/api/admin/credentials', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authorization}` }, body: JSON.stringify({ currentPassword, newUsername, newPassword }) });
+  response = await update('wrong', 'new-admin', 'another-long-password'); assert.equal(response.status, 401);
+  response = await update(password, 'new-admin', 'short'); assert.equal(response.status, 400);
+  response = await update(password, 'new-admin', 'another-long-password'); assert.equal(response.status, 200);
+  response = await update(password, 'new-admin', 'yet-another-password'); assert.equal(response.status, 401);
+  response = await fetch(base + '/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'test-admin', password }) }); assert.equal(response.status, 401);
+  response = await fetch(base + '/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'new-admin', password: 'another-long-password' }) }); assert.equal(response.status, 200);
+});

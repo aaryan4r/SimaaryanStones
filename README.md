@@ -1,52 +1,17 @@
-# 🪨 SimAaryan Stones — Website
+# SimAaryan Stones website
 
-**Live Site:** https://aaryan4r.github.io/SimaaryanStones/
+The frontend is static and can be built with `node scripts/build-static.mjs`. The Express API in `backend/` supports authenticated gallery uploads and stores images in PostgreSQL. The API requires the environment settings described in `backend/.env.example`. The public `config.js` needs the API origin after deployment; it must not contain secrets.
 
-Premium Granite Suppliers in Ongole, Andhra Pradesh.
+## Gallery administration
 
----
+Set `ADMIN_USERNAME` to the chosen username and configure a strong, unique password through a server-side `ADMIN_PASSWORD_HASH`. `backend/scripts/hash-password.js` reads the password from standard input and produces a salted scrypt hash. Never commit the actual password, hash, or Railway secrets. `SESSION_SECRET` must be random and at least 32 characters; keep it private. `CORS_ORIGIN` contains the exact allowed frontend origin, not `*`.
 
-## 📁 Structure
+Upload JPEG, PNG or WebP images up to 5 MB. Uploaded images and captions are public. The API stores the images in PostgreSQL, so configure backups and monitor database size. A successful HTTP health response confirms database connectivity, not a complete backup or security audit. The authenticated upload and login were tested using an in-memory PostgreSQL-compatible test; test against the actual Railway PostgreSQL service before launch.
 
-```
-SimaaryanStones/          ← GitHub repo root
-├── index.html            ← ✅ Website lives HERE (GitHub Pages reads this)
-├── backend/
-│   ├── src/server.js     ← Node.js server (for VPS hosting)
-│   ├── package.json
-│   └── .env.example
-└── README.md
-```
+## Enquiries
 
----
+The website opens WhatsApp or the visitor's email app with a draft; it does not send or save an enquiry automatically. Email delivery and enquiry persistence require additional integration. Replace the example reviews with genuine, permitted reviews before launch and review the privacy notice.
 
-## 🚀 GitHub Pages Setup (One-Time)
+See `DEPLOYMENT.md` for deployment status and remaining setup.
 
-1. Go to your repo → **Settings** → **Pages**
-2. Under **"Source"**, select **Deploy from a branch**
-3. Branch: **main** (or master) — Folder: **/ (root)**
-4. Click **Save**
-5. Wait ~2 minutes → your site is live at:
-   `https://aaryan4r.github.io/SimaaryanStones/`
-
----
-
-## 📱 WhatsApp Enquiry
-
-Works fully on GitHub Pages — no backend needed.  
-When a visitor submits the form, WhatsApp opens with their details pre-filled to **+91 8106177797**.
-
----
-
-## 🛠 Backend (Optional — for VPS)
-
-```bash
-cd backend
-npm install
-cp .env.example .env
-npm start
-```
-
----
-
-*© 2026 SimAaryan Stones · Ongole, Andhra Pradesh*
+After signing in, use **Change admin username and password** in the admin page. The current password is required, and the new password must have at least 14 characters. Changing credentials signs out all existing sessions. Bootstrap environment credentials are used only when the database account is first created; subsequent changes are stored in the database.
