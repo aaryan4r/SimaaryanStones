@@ -10,7 +10,10 @@ await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
 for (const file of files) await cp(join(root, file), join(output, file), { recursive: true });
 if (process.env.PUBLIC_API_BASE_URL) {
-  const api = new URL(process.env.PUBLIC_API_BASE_URL);
+  const input = process.env.PUBLIC_API_BASE_URL.trim();
+  let api;
+  try { api = new URL(/^[a-z][a-z\d+.-]*:\/\//i.test(input) ? input : `https://${input}`); }
+  catch { throw new Error('PUBLIC_API_BASE_URL must be a valid HTTPS origin.'); }
   if (api.protocol !== 'https:' || api.username || api.password || api.pathname !== '/' || api.search || api.hash) {
     throw new Error('PUBLIC_API_BASE_URL must be an HTTPS origin without credentials or a path.');
   }
