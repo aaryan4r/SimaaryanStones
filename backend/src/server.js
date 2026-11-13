@@ -79,7 +79,7 @@ app.post('/api/admin/credentials', loginLimit, authorize, async (req, res, next)
 app.get('/api/photos', async (_req, res, next) => { try { const result = await pool.query('SELECT id, caption FROM gallery_photos ORDER BY created_at DESC LIMIT 100'); res.json(result.rows); } catch (error) { next(error); } });
 app.get('/api/photos/:id', async (req, res, next) => {
   if (!/^[0-9a-f-]{36}$/i.test(req.params.id)) return res.sendStatus(404);
-  try { const result = await pool.query('SELECT content_type, content FROM gallery_photos WHERE id = $1', [req.params.id]); if (!result.rowCount) return res.sendStatus(404); res.set('Content-Type', result.rows[0].content_type).set('X-Content-Type-Options', 'nosniff').set('Cache-Control', 'public, max-age=3600').send(result.rows[0].content); } catch (error) { next(error); }
+  try { const result = await pool.query('SELECT content_type, content FROM gallery_photos WHERE id = $1', [req.params.id]); if (!result.rowCount) return res.sendStatus(404); res.set('Content-Type', result.rows[0].content_type).set('X-Content-Type-Options', 'nosniff').set('Cross-Origin-Resource-Policy', 'cross-origin').set('Cache-Control', 'public, max-age=3600').send(result.rows[0].content); } catch (error) { next(error); }
 });
 app.post('/api/admin/photos', uploadLimit, authorize, multipart.single('photo'), async (req, res, next) => {
   const caption = typeof req.body.caption === 'string' ? req.body.caption.trim() : '';

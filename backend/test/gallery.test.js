@@ -31,7 +31,8 @@ test('login and gallery uploads enforce authorization and persist images', async
   response = await fetch(base + '/api/admin/photos', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body }); assert.equal(response.status, 201);
   const created = await response.json();
   response = await fetch(base + '/api/photos'); const photos = await response.json(); assert.equal(photos[0].caption, 'Test granite');
-  response = await fetch(base + '/api/photos/' + created.id); assert.equal(response.status, 200); assert.match(response.headers.get('content-type'), /^image\/png/);
+  response = await fetch(base + '/api/photos/' + created.id); assert.equal(response.status, 200); assert.match(response.headers.get('content-type'), /^image\/png/); assert.equal(response.headers.get('cross-origin-resource-policy'), 'cross-origin');
+  response = await fetch(base + '/api/health'); assert.equal(response.headers.get('cross-origin-resource-policy'), 'same-origin');
   const update = (currentPassword, newUsername, newPassword, authorization = token) => fetch(base + '/api/admin/credentials', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authorization}` }, body: JSON.stringify({ currentPassword, newUsername, newPassword }) });
   response = await update('wrong', 'new-admin', 'another-long-password'); assert.equal(response.status, 401);
   response = await update(password, 'new-admin', 'short'); assert.equal(response.status, 400);
